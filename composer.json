@@ -1,15 +1,15 @@
 {
 	"name" : "zef-dev/convoworks-mypdo",
-    "type": "library",
+	"type" : "library",
 	"description" : "Mysql service data layer implementation",
-    "homepage": "https://github.com/zef-dev/convoworks-mypdo",
+	"homepage" : "https://github.com/zef-dev/convoworks-mypdo",
 	"keywords" : [
-		"mysql", "convoworks"
+		"mysql",
+		"convoworks"
 	],
 	"license" : "MIT",
 	"require" : {
-		"php" : "^7.2",
-        "psr/cache" : "^1.0.1"
+		"php" : "^7.2"
 	},
 	"autoload" : {
 		"psr-4" : {
