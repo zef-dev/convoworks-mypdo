@@ -13,7 +13,7 @@
 	},
 	"autoload" : {
 		"psr-4" : {
-			"Zef\\Zel\\" : "src/Convo/Data/Mypdo"
+			"Convo\\Data\\Mypdo\\" : "src/Convo/Data/Mypdo"
 		}
 	},
 	"config" : {
