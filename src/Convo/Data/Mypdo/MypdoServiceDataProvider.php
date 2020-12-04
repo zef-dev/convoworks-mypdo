@@ -46,7 +46,7 @@ class MypdoServiceDataProvider extends AbstractServiceDataProvider
 	 * {@inheritDoc}
 	 * @see \Convo\Core\IServiceDataProvider::createNewService()
 	 */
-	public function createNewService( \Convo\Core\IAdminUser $user, $serviceName, $serviceAdmins, $isPrivate, $workflowData)
+	public function createNewService( \Convo\Core\IAdminUser $user, $serviceName, $defaultLanguage, $serviceAdmins, $isPrivate, $workflowData)
 	{
 	    $service_id                 =   $this->_generateIdFromName( $serviceName);
 	    
@@ -54,6 +54,7 @@ class MypdoServiceDataProvider extends AbstractServiceDataProvider
 	    $meta_data					=	$this->_getDefaultMeta( $user, $service_id, $serviceName);
 	    $meta_data['service_id']	=	$service_id;
 	    $meta_data['name']			=	$serviceName;
+	    $meta_data['default_language']	=	$defaultLanguage;
 	    $meta_data['owner']			=	$user->getEmail();
 	    $meta_data['admins']        =   $serviceAdmins;
 	    $meta_data['is_private']    =   $isPrivate;
