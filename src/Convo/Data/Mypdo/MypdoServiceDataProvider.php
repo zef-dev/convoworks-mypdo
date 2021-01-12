@@ -300,7 +300,7 @@ class MypdoServiceDataProvider extends AbstractServiceDataProvider
 	public function promoteRelease( \Convo\Core\IAdminUser $user, $serviceId, $releaseId, $type, $stage) {
 	    $statement = $this->_conn->getConnection()->prepare('UPDATE service_releases SET type = :type, stage = :stage, time_updated = :time_updated
                WHERE service_id = :service_id AND release_id = :release_id');
-	    $statement->execute([':service_id' => $serviceId, ':type' => $type, ':stage' => $stage, ':time_updated' => time()]);
+	    $statement->execute([':service_id' => $serviceId, ':type' => $type, ':stage' => $stage, ':release_id' => $releaseId, ':time_updated' => time()]);
 	}
 	
 	/**
