@@ -8,6 +8,7 @@
 		"convoworks"
 	],
 	"license" : "MIT",
+    "version": "1.0.2",
 	"require" : {
 		"php" : "^7.2",
 		"psr/log" : "^1.1.0",
