@@ -2,7 +2,7 @@
 
 ## 1.1.3 - 2021-02-09
 
-* use convoworks-core v1.19
+* use convoworks-core v0.19
 
 
 ## 1.1.0 - 2020-12-04
