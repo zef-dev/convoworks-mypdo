@@ -212,7 +212,9 @@ class MypdoServiceDataProvider extends AbstractServiceDataProvider
 	 */
 	public function getAllServiceVersions( \Convo\Core\IAdminUser $user, $serviceId) {
 	    
-	    $statement =   $this->_conn->getConnection()->query( 'SELECT * FROM service_versions');
+	    $statement =   $this->_conn->getConnection()->query( 'SELECT * FROM service_versions WHERE service_id = :service_id');
+	    $statement->execute( ['service_id'=>$serviceId]);
+	    
 	    $all       =   array();
 	    while ( $row = $statement->fetch( \PDO::FETCH_ASSOC)) {
 	        $all[]		=	$row['version_id'];

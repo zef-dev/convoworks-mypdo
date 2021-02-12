@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [Current development]
+
+* use service_id in getAllServiceVersions() fix
+
+## [Releases]
+
 ## 1.1.3 - 2021-02-09
 
 * use convoworks-core v0.19
