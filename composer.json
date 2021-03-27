@@ -8,11 +8,11 @@
 		"convoworks"
 	],
 	"license" : "MIT",
-    "version": "1.1.4",
+    "version": "1.2.0",
 	"require" : {
 		"php" : "^7.2",
 		"psr/log" : "^1.1.0",
-        "zef-dev/convoworks-core" : "^0.20"
+        "zef-dev/convoworks-core" : "^0.21"
 	},
 	"autoload" : {
 		"psr-4" : {
