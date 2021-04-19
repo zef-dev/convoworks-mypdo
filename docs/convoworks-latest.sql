@@ -34,6 +34,8 @@ CREATE TABLE IF NOT EXISTS `service_params` (
   `level_type` VARCHAR(50) NOT NULL,
   `key` VARCHAR(255) NOT NULL,
   `value` LONGTEXT NOT NULL DEFAULT '',
+  `time_created` INT NULL DEFAULT 0,
+  `time_updated` INT NULL DEFAULT 0,
   UNIQUE INDEX `SERVICE_PARAMS_UNIQUE` (`service_id` ASC, `level_type` ASC, `scope_type` ASC, `key` ASC),
   CONSTRAINT `FK_PARAMS_SERVICE`
     FOREIGN KEY (`service_id`)
