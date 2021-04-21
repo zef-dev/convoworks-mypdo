@@ -27,11 +27,11 @@ class MypdoServiceDataProvider extends AbstractServiceDataProvider
 	 * {@inheritDoc}
 	 * @see \Convo\Core\IServiceDataProvider::getAllServices()
 	 */
-	public function getAllServices( \Convo\Core\IAdminUser $user) 
+	public function getAllServices( \Convo\Core\IAdminUser $user)
 	{
 	    $statement =   $this->_conn->getConnection()->query( 'SELECT * FROM service_data');
 	    $all       =   array();
-	    while ( $row = $statement->fetch( \PDO::FETCH_ASSOC)) 
+	    while ( $row = $statement->fetch( \PDO::FETCH_ASSOC))
 	    {
 	        $serviceMeta = $this->getServiceMeta( $user, $row['service_id']);
 	        if ($this->_checkServiceOwner( $user, $serviceMeta)) {
@@ -41,46 +41,48 @@ class MypdoServiceDataProvider extends AbstractServiceDataProvider
 
 		return $all;
 	}
-	
+
 	/**
 	 * {@inheritDoc}
 	 * @see \Convo\Core\IServiceDataProvider::createNewService()
 	 */
-	public function createNewService( \Convo\Core\IAdminUser $user, $serviceName, $defaultLanguage, $serviceAdmins, $isPrivate, $workflowData)
+	public function createNewService( \Convo\Core\IAdminUser $user, $serviceName, $defaultLanguage, $defaultLocale, $supportedLocales, $isPrivate, $serviceAdmins, $workflowData)
 	{
 	    $service_id                 =   $this->_generateIdFromName( $serviceName);
-	    
+
 	    // META
 	    $meta_data					=	$this->_getDefaultMeta( $user, $service_id, $serviceName);
 	    $meta_data['service_id']	=	$service_id;
 	    $meta_data['name']			=	$serviceName;
 	    $meta_data['default_language']	=	$defaultLanguage;
+	    $meta_data['default_locale']	=	$defaultLocale;
+        $meta_data['supported_locales']	=	$supportedLocales;
 	    $meta_data['owner']			=	$user->getEmail();
 	    $meta_data['admins']        =   $serviceAdmins;
 	    $meta_data['is_private']    =   $isPrivate;
-	    
+
 	    // WORKFLOW
 	    $service_data					=   array_merge( IServiceDataProvider::DEFAULT_WORKFLOW, $workflowData);
 	    $service_data['name']   		=	$serviceName;
 	    $service_data['service_id']		=	$service_id;
-	    
+
 	    $service_data['time_updated']             =   time();
 	    $service_data['intents_time_updated']     =   time();
-	    
-	    
+
+
 	    $statement = $this->_conn->getConnection()->prepare( 'INSERT INTO service_data ( service_id, workflow, meta, config)
             VALUES (:service_id, :workflow, :meta, :config)');
-	    
+
 	    $statement->execute([
 	        ':service_id' => $service_id,
 	        ':workflow' => json_encode( $service_data, JSON_PRETTY_PRINT),
 	        ':meta' => json_encode( $meta_data, JSON_PRETTY_PRINT),
 	        ':config' => json_encode( [], JSON_PRETTY_PRINT),
 	    ]);
-	    
+
 	    return $service_id;
 	}
-	
+
 	/**
 	 * {@inheritDoc}
 	 * @see \Convo\Core\IServiceDataProvider::deleteService()
@@ -88,27 +90,27 @@ class MypdoServiceDataProvider extends AbstractServiceDataProvider
 	public function deleteService( \Convo\Core\IAdminUser $user, $serviceId)
 	{
 	    $service_meta = $this->getServiceMeta($user, $serviceId);
-	    
+
 	    $is_owner = $user->getEmail() === $service_meta['owner'];
 	    $is_admin = in_array($user->getEmail(), $service_meta['admins']);
-	    
+
 	    if (!($is_owner || $is_admin)) {
 	        throw new \Exception('User ['.$user->getName().']['.$user->getEmail().'] is not allowed to delete skill ['.$serviceId.']');
 	    }
-	    
+
 	    $statement = $this->_conn->getConnection()->prepare('DELETE from service_params WHERE service_id = :service_id');
 	    $statement->execute([':service_id' => $serviceId]);
-	    
+
 	    $statement = $this->_conn->getConnection()->prepare('DELETE from service_releases WHERE service_id = :service_id');
 	    $statement->execute([':service_id' => $serviceId]);
-	    
+
 	    $statement = $this->_conn->getConnection()->prepare('DELETE from service_versions WHERE service_id = :service_id');
 	    $statement->execute([':service_id' => $serviceId]);
-	    
+
 	    $statement = $this->_conn->getConnection()->prepare('DELETE from service_data WHERE service_id = :service_id');
 	    $statement->execute([':service_id' => $serviceId]);
 	}
-	
+
 	/**
 	 * {@inheritDoc}
 	 * @see \Convo\Core\IServiceDataProvider::getServiceData()
@@ -121,7 +123,7 @@ class MypdoServiceDataProvider extends AbstractServiceDataProvider
 	        $errorMessage = "User [" . $user->getUsername() . "] is not authorized to open the service [" . $serviceId ."]";
 	        throw new NotAuthorizedException( $errorMessage);
 	    }
-	    
+
 	    if ( $versionId === IPlatformPublisher::MAPPING_TYPE_DEVELOP) {
 	        $statement = $this->_conn->getConnection()->prepare('SELECT workflow FROM service_data where service_id = :service_id');
 	        $statement->execute([':service_id' => $serviceId]);
@@ -129,15 +131,15 @@ class MypdoServiceDataProvider extends AbstractServiceDataProvider
 	        $statement = $this->_conn->getConnection()->prepare('SELECT workflow FROM service_versions where service_id = :service_id AND version_id = :version_id');
 	        $statement->execute([':service_id' => $serviceId, ':version_id' => $versionId]);
 	    }
-	    
+
 	    while ($row = $statement->fetch( \PDO::FETCH_ASSOC)) {
 	        $this->_logger->debug( 'handling row ['.print_r( json_decode( $row['workflow'], true), true).'] data');
 	        return array_merge( IServiceDataProvider::DEFAULT_WORKFLOW, json_decode( $row['workflow'], true));
 	    }
-	    
+
 	    throw new DataItemNotFoundException( 'Service data ['.$serviceId.']['.$versionId.'] not found');
 	}
-	
+
 	/**
 	 * {@inheritDoc}
 	 * @see \Convo\Core\IServiceDataProvider::saveServiceData()
@@ -145,13 +147,13 @@ class MypdoServiceDataProvider extends AbstractServiceDataProvider
 	public function saveServiceData( \Convo\Core\IAdminUser $user, $serviceId, $data)
 	{
 	    $data['time_updated']   =   time();
-	    
+
 	    $statement = $this->_conn->getConnection()->prepare('UPDATE service_data SET workflow = :workflow where service_id = :service_id');
 	    $statement->execute([':service_id' => $serviceId, ':workflow' => json_encode( $data, JSON_PRETTY_PRINT)]);
-	    
+
 	    return $data;
 	}
-	
+
 	/**
 	 * {@inheritDoc}
 	 * @see \Convo\Core\IServiceDataProvider::getServiceMeta()
@@ -170,7 +172,7 @@ class MypdoServiceDataProvider extends AbstractServiceDataProvider
 	        $row['time_updated'] = intval( $row['time_updated']);
 	        return $row;
 	    }
-	    
+
 	    $statement = $this->_conn->getConnection()->prepare('SELECT * FROM service_data where service_id = :service_id');
 	    $statement->execute([':service_id' => $serviceId]);
 	    $row = $statement->fetch( \PDO::FETCH_ASSOC);
@@ -180,7 +182,7 @@ class MypdoServiceDataProvider extends AbstractServiceDataProvider
 	    $row['meta']   =   json_decode( $row['meta'], true);
 	    return array_merge( IServiceDataProvider::DEFAULT_META, $row['meta']);
 	}
-	
+
 	/**
 	 * {@inheritDoc}
 	 * @see \Convo\Core\IServiceDataProvider::saveServiceMeta()
@@ -190,10 +192,10 @@ class MypdoServiceDataProvider extends AbstractServiceDataProvider
 	    $meta['time_updated']   =   time();
 	    $statement = $this->_conn->getConnection()->prepare('UPDATE service_data SET meta = :meta where service_id = :service_id');
 	    $statement->execute([':service_id' => $serviceId, ':meta' => json_encode( $meta, JSON_PRETTY_PRINT)]);
-	    
+
 	    return $meta;
 	}
-	
+
 	/**
 	 * {@inheritDoc}
 	 * @see \Convo\Core\IServiceDataProvider::markVersionAsRelease()
@@ -202,27 +204,27 @@ class MypdoServiceDataProvider extends AbstractServiceDataProvider
 	{
 	    $statement = $this->_conn->getConnection()->prepare('UPDATE service_versions SET release_id = :release_id where service_id = :service_id AND version_id = :version_id');
 	    $statement->execute([':service_id' => $serviceId, ':release_id' => $releaseId, ':version_id' => $versionId]);
-	    
+
 	    return $this->getServiceMeta($user, $serviceId, $versionId);
 	}
-	
+
 	/**
 	 * {@inheritDoc}
 	 * @see \Convo\Core\IServiceDataProvider::getAllServiceVersions()
 	 */
 	public function getAllServiceVersions( \Convo\Core\IAdminUser $user, $serviceId) {
-	    
+
 	    $statement =   $this->_conn->getConnection()->query( 'SELECT * FROM service_versions WHERE service_id = :service_id');
 	    $statement->execute( ['service_id'=>$serviceId]);
-	    
+
 	    $all       =   array();
 	    while ( $row = $statement->fetch( \PDO::FETCH_ASSOC)) {
 	        $all[]		=	$row['version_id'];
 	    }
-	    
+
 	    return $all;
 	}
-	
+
 	/**
 	 * {@inheritDoc}
 	 * @see \Convo\Core\IServiceDataProvider::createServiceVersion()
@@ -231,11 +233,11 @@ class MypdoServiceDataProvider extends AbstractServiceDataProvider
 	{
 	    $version_id	=	$this->_getNextServiceVersion( $serviceId);
 	    $this->_logger->debug( 'Got new version ['.$version_id.'] for service ['.$serviceId.']');
-	    
+
 	    $statement = $this->_conn->getConnection()->prepare( 'INSERT INTO service_versions
             ( service_id, version_id, version_tag, workflow, config, time_created, time_updated)
             VALUES (:service_id, :version_id, :version_tag, :workflow, :config, :time_created, :time_updated)');
-	    
+
 	    $statement->execute([
 	        ':service_id' => $serviceId,
 	        ':version_id' => $version_id,
@@ -245,22 +247,22 @@ class MypdoServiceDataProvider extends AbstractServiceDataProvider
 	        ':time_updated' => time(),
 	        ':time_created' => time(),
 	    ]);
-	    
+
 	    return $version_id;
 	}
-	
+
 	/**
 	 * {@inheritDoc}
 	 * @see \Convo\Core\IServiceDataProvider::createRelease()
 	 */
-	public function createRelease( IAdminUser $user, $serviceId, $platformId, $type, $stage, $alias, $versionId)
+	public function createRelease( IAdminUser $user, $serviceId, $platformId, $type, $stage, $alias, $versionId, $meta)
 	{
 	    $release_id    =   $this->_getNextReleseId( $serviceId);
-	    
+
 	    $statement     =   $this->_conn->getConnection()->prepare( 'INSERT INTO service_releases
             ( service_id, release_id, platform_id, version_id, type, stage, alias, time_created, time_updated)
-            VALUES (:service_id, :release_id, :platform_id, :version_id, :type, :stage, :alias, :time_created, :time_updated)');
-	    
+            VALUES (:service_id, :release_id, :platform_id, :version_id, :type, :stage, :alias, :meta, :time_created, :time_updated)');
+
 	    $statement->execute([
 	        ':service_id' => $serviceId,
 	        ':release_id' => $release_id,
@@ -269,13 +271,14 @@ class MypdoServiceDataProvider extends AbstractServiceDataProvider
 	        ':type' => $type,
 	        ':stage' => $stage,
 	        ':alias' => $alias,
+	        ':meta' => json_encode($meta, JSON_PRETTY_PRINT),
 	        ':time_created' => time(),
 	        ':time_updated' => time(),
 	    ]);
-	    
+
 	    return $release_id;
 	}
-	
+
 	/**
 	 * {@inheritDoc}
 	 * @see \Convo\Core\IServiceDataProvider::getReleaseData()
@@ -284,17 +287,17 @@ class MypdoServiceDataProvider extends AbstractServiceDataProvider
 	{
 	    $statement =   $this->_conn->getConnection()->prepare( 'SELECT * FROM service_releases WHERE service_id = :service_id AND release_id = :release_id');
 	    $statement->execute( ['service_id'=>$serviceId, 'release_id'=>$releaseId]);
-	    
+
 	    if ( $statement->rowCount()) {
 	        $row = $statement->fetch( \PDO::FETCH_ASSOC);
 	        $row['time_created'] = intval( $row['time_created']);
 	        $row['time_updated'] = intval( $row['time_updated']);
 	        return $row;
 	    }
-	    
+
 	    throw new \Convo\Core\DataItemNotFoundException( 'Service ¸release ['.$serviceId.']['.$releaseId.'] not found');
 	}
-	
+
 	/**
 	 * {@inheritDoc}
 	 * @see \Convo\Core\IServiceDataProvider::promoteRelease()
@@ -304,17 +307,17 @@ class MypdoServiceDataProvider extends AbstractServiceDataProvider
                WHERE service_id = :service_id AND release_id = :release_id');
 	    $statement->execute([':service_id' => $serviceId, ':type' => $type, ':stage' => $stage, ':release_id' => $releaseId, ':time_updated' => time()]);
 	}
-	
+
 	/**
 	 * {@inheritDoc}
 	 * @see \Convo\Core\IServiceDataProvider::setReleaseVersion()
 	 */
-	public function setReleaseVersion( \Convo\Core\IAdminUser $user, $serviceId, $releaseId, $versionId) {
+	public function setReleaseVersion( \Convo\Core\IAdminUser $user, $serviceId, $releaseId, $versionId, $meta) {
 	    $statement = $this->_conn->getConnection()->prepare('UPDATE service_releases SET version_id = :version_id, time_updated = :time_updated
-               WHERE service_id = :service_id AND release_id = :release_id');
-	    $statement->execute([':service_id' => $serviceId, ':version_id' => $versionId, ':release_id' => $releaseId, ':time_updated' => time()]);
+               WHERE service_id = :service_id AND release_id = :release_id AND meta = :meta');
+	    $statement->execute([':service_id' => $serviceId, ':version_id' => $versionId, ':release_id' => $releaseId, ':meta' => json_encode($meta, JSON_PRETTY_PRINT), ':time_updated' => time()]);
 	}
-	
+
 	/**
 	 * {@inheritDoc}
 	 * @see \Convo\Core\IServiceDataProvider::getServicePlatformConfig()
@@ -328,16 +331,16 @@ class MypdoServiceDataProvider extends AbstractServiceDataProvider
 	        $statement =   $this->_conn->getConnection()->prepare( 'SELECT `config` FROM service_versions WHERE service_id = :service_id AND version_id = :version_id');
 	        $statement->execute( [':service_id'=>$serviceId, ':version_id'=>$versionId]);
 	    }
-	    
+
 	    if ( $statement->rowCount()) {
 	        $row = $statement->fetch( \PDO::FETCH_ASSOC);
 	        return json_decode( $row['config'], true);
 	    }
-	    
+
 	    if ( $versionId === IPlatformPublisher::MAPPING_TYPE_DEVELOP) {
 	        return [];
 	    }
-	    
+
 	    // if there is version, config has to be present
 	    throw new \Convo\Core\DataItemNotFoundException( 'Service config ['.$serviceId.']['.$versionId.']');
 	}
@@ -354,7 +357,7 @@ class MypdoServiceDataProvider extends AbstractServiceDataProvider
 
 
 	// COMMON
-	private function _getNextServiceVersion( $serviceId) 
+	private function _getNextServiceVersion( $serviceId)
 	{
 	    $statement =   $this->_conn->getConnection()->prepare( 'SELECT version_id FROM service_versions WHERE service_id = :service_id ORDER BY version_id DESC LIMIT 0,1');
 	    $statement->execute([':service_id' => $serviceId]);
@@ -364,13 +367,13 @@ class MypdoServiceDataProvider extends AbstractServiceDataProvider
 	    } else {
 	        $curr  =   0;
 	    }
-	    
+
 	    $curr++;
 	    return sprintf('%08d', $curr);
 	}
-	
-	
-	private function _getNextReleseId( $serviceId) 
+
+
+	private function _getNextReleseId( $serviceId)
 	{
 	    $statement =   $this->_conn->getConnection()->prepare( 'SELECT release_id FROM service_releases WHERE service_id = :service_id ORDER BY release_id DESC LIMIT 0,1');
 	    $statement->execute([':service_id' => $serviceId]);
@@ -380,12 +383,12 @@ class MypdoServiceDataProvider extends AbstractServiceDataProvider
 	    } else {
 	        $curr  =   0;
 	    }
-	    
+
 	    $curr++;
 	    return sprintf('%08d', $curr);
 	}
-	
-	
+
+
 	// UTIL
 	public function __toString()
 	{

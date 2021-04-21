@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit bootstrap="vendor/autoload.php" colors="true" verbose="true" >
+    <testsuites>
+        <testsuite name="integration">
+            <directory>tests/integration</directory>
+        </testsuite>
+    </testsuites>
+
+    <php>
+        <var name="DB_HOST" value="your_db_host" />
+        <var name="DB_USER" value="your_username" />
+        <var name="DB_PASSWD" value="your_password" />
+        <var name="DB_DBNAME" value="your_db_name" />
+    </php>
+</phpunit>
