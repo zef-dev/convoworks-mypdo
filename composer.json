@@ -12,7 +12,7 @@
 	"require" : {
 		"php" : "^7.2",
 		"psr/log" : "^1.1.0",
-        "zef-dev/convoworks-core" : "^0.20"
+        "zef-dev/convoworks-core" : "^0.21"
 	},
 	"autoload" : {
 		"psr-4" : {
@@ -21,7 +21,7 @@
 	},
 	"config" : {
 		"platform" : {
-			"php" : "7.2"
+			"php" : "7.2.5"
 		},
 		"sort-packages" : true
 	},
