@@ -95,6 +95,20 @@ CREATE TABLE IF NOT EXISTS `service_versions` (
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4;
 
+-- -----------------------------------------------------
+-- Table `convoworks_cache`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `convoworks_cache` ;
+
+CREATE TABLE IF NOT EXISTS `convoworks_cache` (
+  `key` VARCHAR(255) NOT NULL,
+  `value` LONGTEXT NOT NULL DEFAULT '',
+  `time_created` INT NULL DEFAULT 0,
+  `expires` INT NULL DEFAULT 0,
+  PRIMARY KEY (`key`)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4;
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
