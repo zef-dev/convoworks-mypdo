@@ -240,7 +240,7 @@ class MypdoCacheTest extends TestCase
 
     protected function tearDown(): void
     {
-        // $this->_logger->info('Clearing cache...');
-        // $this->_myPdoCache->clear();
+        $this->_logger->info('Clearing cache...');
+        $this->_myPdoCache->clear();
     }
 }
