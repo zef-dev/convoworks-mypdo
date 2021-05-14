@@ -4,6 +4,10 @@
 
 ## [Releases]
 
+## 1.3.1 - 2021-05-14
+
+* Use `convoworks-core` v0.22
+
 ## 1.3.0 - 2021-04-22
 
 * add time created and time updated in `service_params` table
